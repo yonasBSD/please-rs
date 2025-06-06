@@ -31,7 +31,6 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
-use std::os::unix::io::AsRawFd;
 use std::time::SystemTime;
 use uzers::os::unix::UserExt;
 use uzers::*;
@@ -798,7 +797,7 @@ pub fn read_ini_config_file(
         Ok(file) => file,
     };
 
-    match nix::sys::stat::fstat(file.as_raw_fd()) {
+    match nix::sys::stat::fstat(&file) {
         Err(why) => {
             println!("Could not stat {}: {}", display, why);
             return true;

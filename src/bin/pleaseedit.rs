@@ -24,7 +24,6 @@ use std::fs::OpenOptions;
 use std::os::unix::fs::OpenOptionsExt;
 
 use std::io::{self, Write};
-use std::os::unix::io::AsRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -129,7 +128,7 @@ fn setup_temp_edit_file(
     }
 
     if fchown(
-        file.as_ref().unwrap().as_raw_fd(),
+        file.as_ref().unwrap(),
         Some(ro.original_uid),
         Some(ro.original_gid),
     )
@@ -139,7 +138,7 @@ fn setup_temp_edit_file(
     }
 
     if fchmod(
-        file.as_ref().unwrap().as_raw_fd(),
+        file.as_ref().unwrap(),
         nix::sys::stat::Mode::S_IRUSR | nix::sys::stat::Mode::S_IWUSR,
     )
     .is_err()
@@ -314,17 +313,13 @@ fn rename_to_source(
     }
 
     fchown(
-        dir_parent_tmp_file.as_raw_fd(),
+        dir_parent_tmp_file,
         Some(nix::unistd::Uid::from_raw(lookup_name.uid())),
         Some(target_uid_gid.target_gid),
     )
     .unwrap();
 
-    fchmod(
-        dir_parent_tmp_file.as_raw_fd(),
-        edit_mode(entry, source_file),
-    )
-    .unwrap();
+    fchmod(dir_parent_tmp_file, edit_mode(entry, source_file)).unwrap();
 
     if entry.exitcmd.is_some() {
         let mut cmd = build_exitcmd(entry, source_file.to_str().unwrap(), dir_parent_tmp);
@@ -435,11 +430,11 @@ fn child_editor(ro: &RunOptions, edit_file: &Option<String>) {
 
     let args: Vec<&str> = editor.as_str().split(' ').collect();
     if args.len() == 1 {
-        Command::new(editor.as_str())
+        let _ = Command::new(editor.as_str())
             .arg(edit_file.as_ref().unwrap())
             .exec();
     } else {
-        Command::new(args[0])
+        let _ = Command::new(args[0])
             .args(&args[1..])
             .arg(edit_file.as_ref().unwrap())
             .exec();
