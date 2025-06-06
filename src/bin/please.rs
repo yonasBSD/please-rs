@@ -345,11 +345,11 @@ fn main() {
     nix::sys::stat::umask(ro.old_umask.unwrap());
 
     if ro.cloned_args.as_ref().unwrap().len() > 1 {
-        Command::new(&ro.cloned_args.as_ref().unwrap()[0])
+        let _ = Command::new(&ro.cloned_args.as_ref().unwrap()[0])
             .args(ro.cloned_args.as_ref().unwrap().clone().split_off(1))
             .exec();
     } else {
-        Command::new(&ro.cloned_args.as_ref().unwrap()[0]).exec();
+        let _ = Command::new(&ro.cloned_args.as_ref().unwrap()[0]).exec();
     }
     println!("Error executing");
     std::process::exit(1);
